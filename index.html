@@ -5,36 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kimyasal Cephe: İç Savaş</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0b0f0c; color: #fff; height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
+        body { background-color: #050805; color: #fff; height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
         
-        .game-container { width: 100%; max-width: 480px; height: 100%; max-height: 850px; background: linear-gradient(135deg, #111a13, #050705); position: relative; box-shadow: 0 0 30px rgba(0,255,100,0.2); display: flex; flex-direction: column; justify-content: space-between; border: 2px solid #1f3a22; }
+        .game-container { width: 100%; max-width: 480px; height: 100%; max-height: 850px; background: radial-gradient(circle, #122214 0%, #050805 100%); position: relative; box-shadow: 0 0 40px rgba(0,255,100,0.3); display: flex; flex-direction: column; justify-content: space-between; border: 2px solid #1f3a22; overflow: hidden; }
 
-        /* Ekranlar */
-        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 30px 20px; transition: opacity 0.4s ease; }
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 30px 20px; transition: opacity 0.3s ease; z-index: 10; background: rgba(5,8,5,0.95); }
         .hidden { display: none !important; opacity: 0; pointer-events: none; }
 
         /* Ana Menü */
-        .logo-area { text-align: center; margin-top: 40px; }
-        .logo-area h1 { font-size: 28px; color: #adff2f; text-shadow: 0 0 10px rgba(173,255,47,0.5); letter-spacing: 2px; }
-        .logo-area p { font-size: 14px; color: #ff3333; font-weight: bold; margin-top: 5px; }
+        .logo-area { text-align: center; margin-top: 60px; }
+        .logo-area h1 { font-size: 32px; color: #adff2f; text-shadow: 0 0 15px rgba(173,255,47,0.6); letter-spacing: 2px; font-weight: 900; }
+        .logo-area p { font-size: 13px; color: #ff3333; font-weight: bold; margin-top: 5px; letter-spacing: 4px; }
 
         .menu-buttons { display: flex; flex-direction: column; gap: 15px; margin-bottom: 50px; }
-        .btn { background: #1a2e1d; border: 2px solid #32cd32; color: #fff; padding: 15px; font-size: 18px; font-weight: bold; text-transform: uppercase; cursor: pointer; border-radius: 8px; text-shadow: 0 0 5px rgba(0,0,0,0.8); transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .btn:hover { background: #32cd32; color: #0b0f0c; box-shadow: 0 0 20px #32cd32; transform: translateY(-2px); }
-        .btn-primary { background: linear-gradient(45deg, #2e8b57, #32cd32); color: #000; font-size: 22px; }
+        .btn { background: #142216; border: 2px solid #32cd32; color: #fff; padding: 16px; font-size: 18px; font-weight: bold; text-transform: uppercase; cursor: pointer; border-radius: 8px; text-shadow: 0 0 5px rgba(0,0,0,0.8); transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: linear-gradient(45deg, #1b5e20, #32cd32); color: #000; font-size: 22px; border-color: #adff2f; box-shadow: 0 0 20px rgba(50,205,50,0.4); }
 
-        /* Savaş/Arama Ekranı */
-        .matchmaking-screen { background: rgba(0,0,0,0.85); justify-content: center; align-items: center; text-align: center; }
+        /* Savaş Alanı / Oynanış Ekranı */
+        #gameplayScreen { background: linear-gradient(to bottom, #0a140c, #141f16); z-index: 5; padding: 15px; }
+        .hud-top { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 8px; border: 1px solid #2e8b57; }
+        .hud-stat { font-size: 14px; color: #adff2f; font-weight: bold; }
+        
+        .battle-arena { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; text-align: center; }
+        .crosshair { width: 40px; height: 40px; border: 2px dashed rgba(255,255,255,0.4); border-radius: 50%; position: absolute; pointer-events: none; animation: pulseCross 2s infinite; }
+        @keyframes pulseCross { 0% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } }
+
+        .action-controls { display: flex; gap: 15px; width: 100%; margin-bottom: 20px; }
+        .action-btn { flex: 1; background: #8b0000; border: 2px solid #ff4500; color: #fff; padding: 18px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .action-btn:active { background: #ff0000; }
+        .loot-btn { background: #006400; border-color: #32cd32; }
+
+        .kill-feed { position: absolute; top: 80px; right: 15px; font-size: 11px; color: #ff6b6b; background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 4px; text-align: right; line-height: 1.4; }
+
+        /* Matchmaking */
+        .matchmaking-screen { background: rgba(5,8,5,0.98); justify-content: center; align-items: center; text-align: center; }
         .spinner { width: 60px; height: 60px; border: 6px solid rgba(255,255,255,0.1); border-top: 6px solid #32cd32; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Cephanelik Ekranı */
-        .grid-chars { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .char-card { background: #142216; border: 1px solid #2e8b57; padding: 15px; text-align: center; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-        .char-card:hover { border-color: #32cd32; background: #1c331f; }
-        .back-btn { background: transparent; border: 1px solid #777; color: #aaa; padding: 10px; border-radius: 5px; cursor: pointer; }
-        .back-btn:hover { border-color: #fff; color: #fff; }
+        .back-btn { background: transparent; border: 1px solid #555; color: #aaa; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -44,49 +54,57 @@
         <div id="mainMenu" class="screen">
             <div class="logo-area">
                 <h1>KİMYASAL CEPHE</h1>
-                <p>İÇ SAVAŞ | BATTLE ROYALE</p>
+                <p>İÇ SAVAŞ</p>
             </div>
             <div class="menu-buttons">
-                <button class="btn btn-primary" onclick="startMatchmaking()">OYNA</button>
-                <button class="btn" onclick="openScreen('characterScreen')">ASKERLER</button>
-                <button class="btn" onclick="openScreen('armoryScreen')">CEPHANELİK</button>
+                <button class="btn btn-primary" onclick="startMatchmaking()">OYNA (BATTLE ROYALE)</button>
+                <button class="btn" onclick="alert('Askerler: Taktiksel Piyade ve Ağır Zırhlı Muhafızlar kilidi açık.')">ASKERLER</button>
+                <button class="btn" onclick="alert('Cephanelik: Taarruz Tüfeği ve Kimyasal Bomba kuşanıldı.')">CEPHANELİK</button>
             </div>
-        </div>
-
-        <div id="characterScreen" class="screen hidden">
-            <div>
-                <h2>ASKER SEÇİMİ</h2>
-                <div class="grid-chars">
-                    <div class="char-card"><b>Taktiksel Nişancı</b><br><small>Hız: Yüksek</small></div>
-                    <div class="char-card"><b>Ağır Piyade</b><br><small>Zırh: Maksimum</small></div>
-                </div>
-            </div>
-            <button class="back-btn" onclick="openScreen('mainMenu')">Geri Dön</button>
-        </div>
-
-        <div id="armoryScreen" class="screen hidden">
-            <div>
-                <h2>SİLAHLAR</h2>
-                <div class="grid-chars">
-                    <div class="char-card"><b>Taarruz Tüfeği</b><br><small>Lazer Nişangah</small></div>
-                    <div class="char-card"><b>Kimyasal Pompalı</b><br><small>Yüksek Hasar</small></div>
-                </div>
-            </div>
-            <button class="back-btn" onclick="openScreen('mainMenu')">Geri Dön</button>
         </div>
 
         <div id="matchmakingScreen" class="screen matchmaking-screen hidden">
             <div>
                 <div class="spinner"></div>
-                <h2>SAVAŞ ALANI YÜKLENİYOR...</h2>
-                <p style="color: #aaa; margin-top: 10px;">Rakipler aranıyor ve cephe kuruluyor.</p>
+                <h2 style="color: #adff2f; letter-spacing: 1px;">SAVAŞ ALANI KURULUYOR...</h2>
+                <p style="color: #888; margin-top: 10px; font-size: 14px;">100 Oyuncu İniş Yapıyor</p>
             </div>
-            <button class="back-btn" onclick="openScreen('mainMenu')" style="width: 100%;">İptal Et</button>
+            <button class="back-btn" onclick="openScreen('mainMenu')">İPTAL ET</button>
+        </div>
+
+        <div id="gameplayScreen" class="screen hidden" style="opacity: 1;">
+            <div class="hud-top">
+                <div class="hud-stat">❤️ CAN: <span id="hpVal">100</span></div>
+                <div class="hud-stat">👥 KALAN: <span id="aliveVal">42</span></div>
+                <div class="hud-stat">🎯 SKOR: <span id="scoreVal">0</span></div>
+            </div>
+
+            <div class="kill-feed" id="killFeed">
+                [SİSTEM] Bölge daralıyor!<br>X_Ghost kimyasal gazda öldü.
+            </div>
+
+            <div class="battle-arena">
+                <div class="crosshair"></div>
+                <div id="gameStatusText" style="font-size: 15px; color: #adff2f; font-weight: bold; text-transform: uppercase; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px; border: 1px solid #32cd32;">
+                    Bölgede Çatışma Başladı!
+                </div>
+            </div>
+
+            <div class="action-controls">
+                <button class="action-btn loot-btn" onclick="doLoot()">LOOT YAP 🎒</button>
+                <button class="action-btn" onclick="shootEnemy()">ATEŞ ET 💥</button>
+            </div>
+
+            <button class="back-btn" onclick="quitGame()" style="border-color: #ff3333; color: #ff3333;">MAÇTAN ÇIK</button>
         </div>
 
     </div>
 
     <script>
+        let playerHP = 100;
+        let alivePlayers = 42;
+        let playerScore = 0;
+
         function openScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
             document.getElementById(screenId).classList.remove('hidden');
@@ -94,11 +112,45 @@
 
         function startMatchmaking() {
             openScreen('matchmakingScreen');
-            // 3 saniye sonra sanki oyun başlamış gibi ana menüye döndür veya simüle et
             setTimeout(() => {
-                alert("Savaş Alanına Atlandın! Çatışma Başlıyor!");
+                openScreen('gameplayScreen');
+                resetGameStats();
+            }, 3000);
+        }
+
+        function shootEnemy() {
+            playerScore += 100;
+            alivePlayers = Math.max(2, alivePlayers - Math.floor(Math.random() * 3) - 1);
+            
+            document.getElementById('scoreVal').innerText = playerScore;
+            document.getElementById('aliveVal').innerText = alivePlayers;
+            document.getElementById('gameStatusText').innerText = "Düşman Vuruldu! +100 Puan";
+            
+            if(alivePlayers <= 2) {
+                document.getElementById('gameStatusText').innerText = "🏆 TEBRİKLER! ÇORBA PARASI (WIN)";
+            }
+        }
+
+        function doLoot() {
+            playerHP = Math.min(100, playerHP + 20);
+            document.getElementById('hpVal').innerText = playerHP;
+            document.getElementById('gameStatusText').innerText = "Sağlık kiti kullanıldı! Can yenilendi.";
+        }
+
+        function quitGame() {
+            if(confirm("Maçtan çıkmak istediğine emin misin?")) {
                 openScreen('mainMenu');
-            }, 3500);
+            }
+        }
+
+        function resetGameStats() {
+            playerHP = 100;
+            alivePlayers = 42;
+            playerScore = 0;
+            document.getElementById('hpVal').innerText = playerHP;
+            document.getElementById('aliveVal').innerText = alivePlayers;
+            document.getElementById('scoreVal').innerText = playerScore;
+            document.getElementById('gameStatusText').innerText = "Bölgede Çatışma Başladı!";
         }
     </script>
 </body>
