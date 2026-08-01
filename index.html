@@ -5,19 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Kimyasal Cephe: İç Savaş</title>
   <style>
-    body { margin: 0; overflow: hidden; background: #000; user-select: none; font-family: sans-serif; }
-    #gameCanvas { display: block; width: 100vw; height: 100vh; }
+    body { margin: 0; overflow: hidden; background: #0b0d0a; user-select: none; font-family: 'Courier New', Courier, monospace; }
     
-    /* Üst HUD / Bilgiler */
-    .hud { position: absolute; top: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; color: #fff; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); pointer-events: none; }
-    .hud-box { background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 20px; border: 1px solid #c9d927; }
+    /* Ana Menü Ekranı */
+    #menuScreen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vw; min-height: 100vh; background: #0f110c; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding: 20px; box-sizing: border-box; }
+    .game-title { color: #32cd32; font-size: 28px; font-weight: bold; text-align: center; text-shadow: 0 0 10px rgba(50,205,50,0.5); margin-bottom: 5px; }
+    .game-subtitle { color: #ff3333; font-size: 14px; font-weight: bold; letter-spacing: 2px; margin-bottom: 40px; text-align: center; }
     
-    /* Mobil Kontroller */
-    #joystickZone { position: absolute; bottom: 40px; left: 40px; width: 130px; height: 130px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); touch-action: none; }
-    #joystickKnob { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; background: rgba(255,255,255,0.7); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+    .menu-btn { width: 80%; max-width: 300px; padding: 15px; margin: 10px 0; background: linear-gradient(to bottom, #2d5a27, #1e3d1a); border: 2px solid #32cd32; border-radius: 8px; color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+    .menu-btn:active { transform: scale(0.97); background: linear-gradient(to bottom, #1e3d1a, #2d5a27); }
+
+    /* Oyun Alanı ve HUD (Başlangıçta Gizli) */
+    #gameContainer { display: none; width: 100vw; height: 100vh; position: relative; }
+    #canvas { display: block; width: 100vw; height: 100vh; }
     
-    #fireBtn { position: absolute; bottom: 50px; right: 50px; width: 100px; height: 100px; background: rgba(255,50,50,0.3); border-radius: 50%; border: 3px solid rgba(255,50,50,0.8); display: flex; justify-content: center; align-items: center; color: white; font-size: 30px; touch-action: none; }
-    #fireBtn:active { background: rgba(255,50,50,0.7); transform: scale(0.95); }
+    .hud-top { position: absolute; top: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; color: #d4af37; font-weight: bold; pointer-events: none; text-shadow: 0 2px 4px #000; }
+    .hud-panel { background: rgba(15, 20, 15, 0.7); padding: 8px 15px; border: 1px solid #4a5d4e; border-radius: 4px; }
+    
+    #crosshair { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; transform: translate(-50%, -50%); pointer-events: none; }
+    #crosshair::before, #crosshair::after { content: ''; position: absolute; background: rgba(0, 255, 0, 0.8); }
+    #crosshair::before { top: 7px; left: 0; width: 16px; height: 2px; }
+    #crosshair::after { top: 0; left: 7px; width: 2px; height: 16px; }
+
+    #joystick { position: absolute; bottom: 30px; left: 30px; width: 120px; height: 120px; background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; touch-action: none; }
+    #joystickKnob { position: absolute; top: 50%; left: 50%; width: 45px; height: 45px; background: rgba(212, 175, 55, 0.6); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+    
+    #fireBtn { position: absolute; bottom: 40px; right: 30px; width: 95px; height: 95px; background: rgba(180, 40, 40, 0.4); border: 3px solid #ff4444; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff; font-size: 20px; font-weight: bold; touch-action: none; box-shadow: 0 0 15px rgba(255,0,0,0.4); }
+    #fireBtn:active { background: rgba(180, 40, 40, 0.8); transform: scale(0.95); }
+    
+    #reloadBtn { position: absolute; bottom: 150px; right: 45px; width: 60px; height: 60px; background: rgba(50,50,50,0.6); border: 2px solid #888; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff; font-size: 11px; font-weight: bold; touch-action: none; }
   </style>
   
   <script type="importmap">
@@ -29,169 +45,194 @@
   </script>
 </head>
 <body>
-  
-  <div class="hud">
-    <div class="hud-box" id="aliveDisplay">Kalan: 50</div>
-    <div class="hud-box" style="color: #ff5555;" id="killDisplay">Leş: 0</div>
+
+  <div id="menuScreen">
+    <div class="game-title">KİMYASAL CEPHE</div>
+    <div class="game-subtitle">İÇ SAVAŞ | BATTLE ROYALE</div>
+    
+    <div class="menu-btn" id="startBtn">OYNA</div>
+    <div class="menu-btn" onclick="alert('Askerler yakında eklenecek!')">ASKERLER</div>
+    <div class="menu-btn" onclick="alert('Cephanelik kilitli!')">CEPHANELİK</div>
   </div>
-  
-  <div id="joystickZone"><div id="joystickKnob"></div></div>
-  <div id="fireBtn">💥</div>
+
+  <div id="gameContainer">
+    <div class="hud-top">
+      <div class="hud-panel" id="scorePanel">DÜŞMAN: 0 / 20</div>
+      <div class="hud-panel" id="ammoPanel">MERMİ: 30/30</div>
+    </div>
+
+    <div id="crosshair"></div>
+    <div id="joystick"><div id="joystickKnob"></div></div>
+    <div id="fireBtn">ATEŞ</div>
+    <div id="reloadBtn">ŞARJÖR</div>
+  </div>
 
   <script type="module">
     import * as THREE from 'three';
 
-    // 1. Sahne ve Kamera Ayarları (Tepe Kamera)
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0f110c);
-    scene.fog = new THREE.Fog(0xc9d927, 15, 60); // Sarı Gaz Bulutu
+    let gameStarted = false;
+    let scene, camera, renderer;
+    let player = { x: 0, z: 0, rotY: 0, hp: 100, ammo: 30, kills: 0 };
+    let enemies = [];
+    let moveX = 0, moveZ = 0, isFiring = false;
+    let clock = new THREE.Clock();
+    let lastShot = 0;
 
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+    document.getElementById('startBtn').addEventListener('click', () => {
+      document.getElementById('menuScreen').style.display = 'none';
+      document.getElementById('gameContainer').style.display = 'block';
+      initGame();
+      gameStarted = true;
+      animate();
+    });
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    scene.add(ambientLight);
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    dirLight.position.set(20, 40, 20);
-    scene.add(dirLight);
+    function initGame() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x181a16);
+      scene.fog = new THREE.FogExp2(0x181a16, 0.025);
 
-    // 2. Harita / Zemin
-    const groundGeo = new THREE.PlaneGeometry(300, 300);
-    const groundMat = new THREE.MeshStandardMaterial({ color: 0x333b2a });
-    const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = -Math.PI / 2;
-    scene.add(ground);
+      camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      document.getElementById('gameContainer').appendChild(renderer.domElement);
 
-    // 3. Karakterimiz (Yeşil)
-    const playerGeo = new THREE.CapsuleGeometry(0.5, 1, 4, 8);
-    const playerMat = new THREE.MeshStandardMaterial({ color: 0x32cd32 });
-    const player = new THREE.Mesh(playerGeo, playerMat);
-    player.position.y = 1;
-    scene.add(player);
+      const ambientLight = new THREE.AmbientLight(0x404440, 1.2);
+      scene.add(ambientLight);
+      
+      const sunLight = new THREE.DirectionalLight(0xffeedd, 1.5);
+      sunLight.position.set(30, 50, 20);
+      scene.add(sunLight);
 
-    // Silah Namlusu
-    const gunGeo = new THREE.BoxGeometry(0.15, 0.15, 0.8);
-    const gunMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-    const gun = new THREE.Mesh(gunGeo, gunMat);
-    gun.position.set(0, 0.2, 0.6);
-    player.add(gun);
+      // Zemin
+      const floorGeo = new THREE.PlaneGeometry(250, 250);
+      const floorMat = new THREE.MeshStandardMaterial({ color: 0x2b3027, roughness: 0.9 });
+      const floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      scene.add(floor);
 
-    // 4. Düşmanlar (Kırmızı Botlar)
-    const enemies = [];
-    const enemyGeo = new THREE.CapsuleGeometry(0.5, 1, 4, 8);
-    const enemyMat = new THREE.MeshStandardMaterial({ color: 0xd32f2f });
-    
-    for(let i=0; i<49; i++) {
+      // Siperler
+      const boxGeo = new THREE.BoxGeometry(4, 3, 4);
+      const boxMat = new THREE.MeshStandardMaterial({ color: 0x4a4d43, roughness: 0.7 });
+      for(let i = 0; i < 20; i++) {
+        const obstacle = new THREE.Mesh(boxGeo, boxMat);
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 10 + Math.random() * 60;
+        obstacle.position.set(Math.cos(angle) * dist, 1.5, Math.sin(angle) * dist);
+        scene.add(obstacle);
+      }
+
+      // Düşmanlar
+      for(let i = 0; i < 10; i++) spawnEnemy();
+
+      setupControls();
+    }
+
+    function spawnEnemy() {
+      const enemyGeo = new THREE.CapsuleGeometry(0.6, 1.4, 4, 8);
+      const enemyMat = new THREE.MeshStandardMaterial({ color: 0x8b3a3a, roughness: 0.5 });
       const enemy = new THREE.Mesh(enemyGeo, enemyMat);
+      
       const angle = Math.random() * Math.PI * 2;
-      const radius = Math.random() * 60 + 10;
-      enemy.position.set(Math.cos(angle) * radius, 1, Math.sin(angle) * radius);
-      enemy.userData = { alive: true, hp: 100 };
+      const dist = 30 + Math.random() * 40;
+      enemy.position.set(player.x + Math.cos(angle) * dist, 1, player.z + Math.sin(angle) * dist);
+      enemy.userData = { hp: 100, speed: 3 + Math.random() * 2 };
       scene.add(enemy);
       enemies.push(enemy);
     }
 
-    // 5. Oyun Değişkenleri ve Kontroller
-    let moveX = 0, moveZ = 0, isFiring = false;
-    let pKills = 0, pAlive = 50;
+    function setupControls() {
+      const joystick = document.getElementById('joystick');
+      const knob = document.getElementById('joystickKnob');
+      let jCenter = { x: 0, y: 0 };
 
-    // Joystick Okuma
-    const zone = document.getElementById('joystickZone');
-    const knob = document.getElementById('joystickKnob');
-    let zoneCenter = {x:0, y:0};
+      joystick.addEventListener('touchstart', (e) => {
+        const rect = joystick.getBoundingClientRect();
+        jCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        handleTouch(e);
+      });
+      joystick.addEventListener('touchmove', handleTouch);
+      joystick.addEventListener('touchend', () => {
+        moveX = 0; moveZ = 0;
+        knob.style.transform = `translate(-50%, -50%)`;
+      });
 
-    zone.addEventListener('touchstart', (e) => {
-      const rect = zone.getBoundingClientRect();
-      zoneCenter = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
-      handleMove(e);
-    });
-    zone.addEventListener('touchmove', handleMove);
-    zone.addEventListener('touchend', () => {
-      moveX = 0; moveZ = 0;
-      knob.style.transform = `translate(-50%, -50%)`;
-    });
+      function handleTouch(e) {
+        const t = e.touches[0];
+        let dx = t.clientX - jCenter.x;
+        let dy = t.clientY - jCenter.y;
+        const dist = Math.min(Math.hypot(dx, dy), 45);
+        const angle = Math.atan2(dy, dx);
+        
+        knob.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
+        moveX = Math.cos(angle) * (dist / 45);
+        moveZ = Math.sin(angle) * (dist / 45);
+      }
 
-    function handleMove(e) {
-      const touch = e.touches[0];
-      let dx = touch.clientX - zoneCenter.x;
-      let dy = touch.clientY - zoneCenter.y;
-      const dist = Math.min(Math.hypot(dx, dy), 50);
-      const angle = Math.atan2(dy, dx);
-      
-      knob.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
-      moveX = Math.cos(angle) * (dist/50);
-      moveZ = Math.sin(angle) * (dist/50);
+      document.getElementById('fireBtn').addEventListener('touchstart', () => isFiring = true);
+      document.getElementById('fireBtn').addEventListener('touchend', () => isFiring = false);
+      document.getElementById('reloadBtn').addEventListener('touchstart', () => {
+        player.ammo = 30;
+        document.getElementById('ammoPanel').innerText = `MERMİ: 30/30`;
+      });
     }
 
-    // Ateş Etme Tetikleyicisi
-    const fireBtn = document.getElementById('fireBtn');
-    fireBtn.addEventListener('touchstart', () => isFiring = true);
-    fireBtn.addEventListener('touchend', () => isFiring = false);
-    
-    // Bilgisayardan test etmek istersen (Mouse Desteği)
-    fireBtn.addEventListener('mousedown', () => isFiring = true);
-    fireBtn.addEventListener('mouseup', () => isFiring = false);
-
-    // 6. Motor Döngüsü (Oyunun Aktığı Yer)
-    const clock = new THREE.Clock();
-    let lastFire = 0;
-
     function animate() {
+      if (!gameStarted) return;
       requestAnimationFrame(animate);
       const delta = clock.getDelta();
       const time = clock.getElapsedTime();
 
-      // Yürüme Mantığı
-      player.position.x += moveX * 14 * delta;
-      player.position.z += moveZ * 14 * delta;
-
       if(moveX !== 0 || moveZ !== 0) {
-        player.rotation.y = -Math.atan2(moveZ, moveX) + Math.PI/2;
+        player.rotY = Math.atan2(moveX, moveZ);
+        player.x += Math.sin(player.rotY) * 8 * delta;
+        player.z += Math.cos(player.rotY) * 8 * delta;
       }
 
-      // Otomatik Nişan ve Ateş (Auto-Aim)
-      if(isFiring && time - lastFire > 0.15) {
-        lastFire = time;
-        let nearest = null, minDist = 25; // 25 Metre Menzil
-        
-        enemies.forEach(e => {
-          if(!e.userData.alive) return;
-          const dist = player.position.distanceTo(e.position);
-          if(dist < minDist) { minDist = dist; nearest = e; }
-        });
+      camera.position.set(player.x, 1.8, player.z);
+      camera.rotation.y = player.rotY;
 
-        if(nearest) {
-          player.lookAt(nearest.position);
-          nearest.userData.hp -= 25; // Hasar
-          
-          // Silah Ateş Efekti (Namlu Parlaması)
-          gunMat.color.setHex(0xffff00);
-          setTimeout(() => gunMat.color.setHex(0x222222), 50);
+      if(isFiring && time - lastShot > 0.12 && player.ammo > 0) {
+        lastShot = time;
+        player.ammo--;
+        document.getElementById('ammoPanel').innerText = `MERMİ: ${player.ammo}/30`;
 
-          // Düşman Ölümü
-          if(nearest.userData.hp <= 0) {
-            nearest.userData.alive = false;
-            nearest.rotation.x = Math.PI/2; // Yere devrilme
-            nearest.position.y = 0.2;
-            pKills++;
-            pAlive--;
-            document.getElementById('killDisplay').innerText = `Leş: ${pKills}`;
-            document.getElementById('aliveDisplay').innerText = `Kalan: ${pAlive}`;
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+        const hits = raycaster.intersectObjects(enemies);
+
+        if(hits.length > 0) {
+          const target = hits[0].object;
+          target.userData.hp -= 50;
+          target.material.color.setHex(0xffffff);
+          setTimeout(() => target.material.color.setHex(0x8b3a3a), 100);
+
+          if(target.userData.hp <= 0) {
+            scene.remove(target);
+            enemies.splice(enemies.indexOf(target), 1);
+            player.kills++;
+            document.getElementById('scorePanel').innerText = `DÜŞMAN: ${player.kills} / 20`;
+            spawnEnemy();
           }
         }
       }
 
-      // Kameranın Oyuncuyu Takip Etmesi (Mobil TPS Açısı)
-      camera.position.lerp(new THREE.Vector3(player.position.x, 20, player.position.z + 15), 0.1);
-      camera.lookAt(player.position.x, 0, player.position.z);
+      enemies.forEach(e => {
+        const dirX = player.x - e.position.x;
+        const dirZ = player.z - e.position.z;
+        const d = Math.hypot(dirX, dirZ);
+        if(d > 2) {
+          e.position.x += (dirX / d) * e.userData.speed * delta;
+          e.position.z += (dirZ / d) * e.userData.speed * delta;
+          e.lookAt(player.x, e.position.y, player.z);
+        }
+      });
 
       renderer.render(scene, camera);
     }
-    animate();
 
     window.addEventListener('resize', () => {
+      if(!gameStarted) return;
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
